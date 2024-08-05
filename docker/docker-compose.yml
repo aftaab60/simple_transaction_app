@@ -1,0 +1,78 @@
+version: "3.9"
+name: simple_transaction_app
+services:
+  db_mysql:
+    image: mysql:8.0
+    platform: linux/x86_64
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4
+    container_name: db_mysql
+    networks:
+      - default
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306' # Opens port 3306 on the container
+    env_file:
+      - docker-mysql.env
+    volumes:
+      - ./conf/mysql.cnf:/etc/mysql/my.cnf # Where our db instance config is set
+    healthcheck:
+      test: [ "CMD-SHELL", "mysql -h localhost -u $${MYSQL_USER} -p$${MYSQL_PASSWORD} -e 'SHOW DATABASES;'" ]
+      interval: 10s
+      timeout: 20s
+      retries: 10
+      start_period: 5s
+  db_pgsql:
+    image: postgres:14
+    platform: linux/x86_64
+#    environment:
+#      POSTGRES_USER: ${POSTGRES_USER}
+#      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+#      POSTGRES_DB: ${POSTGRES_DB}
+    container_name: db_pgsql
+    networks:
+      - default
+    ports:
+      - '5432:5432'
+    expose:
+      - '5432' # Opens port 5432 on the container
+    env_file:
+      - docker-pgsql.env
+    volumes:
+      - ./conf/pgsql.conf:/etc/postgresql/postgresql.conf # Where our db instance config is set
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}" ]
+      interval: 10s
+      timeout: 20s
+      retries: 10
+      start_period: 5s
+  cache-redis:
+    image: redis:6.2
+    command: redis-server --save 20 1 --loglevel warning --requirepass admin123 --maxmemory-policy volatile-lru --maxmemory 256mb
+    container_name: cache-redis
+    restart: always
+    networks:
+      - default
+    ports:
+      - '6379:6379'
+    volumes:
+      - cache-redis:/data
+  account-service:
+    container_name: account-service
+    build:
+      context: ..
+      dockerfile: ./docker/Dockerfile
+    networks:
+      - default
+    ports:
+      - "3000:3000"
+    depends_on:
+      - db_pgsql
+    volumes:
+      - type: bind
+        source: ../config.yml
+        target: /etc/secrets/config.yml
+volumes:
+  cache-redis:
+    driver: local
+  data:
