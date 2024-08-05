@@ -1,0 +1,17 @@
+CREATE TABLE accounts (
+    account_id SERIAL NOT NULL PRIMARY KEY,
+    balance DECIMAL(18, 5) NOT NULL DEFAULT 0.0,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE transactions (
+    transaction_id SERIAL NOT NULL PRIMARY KEY,
+    source_account_id INTEGER NOT NULL REFERENCES accounts(account_id),
+    destination_account_id INTEGER NOT NULL REFERENCES accounts(account_id),
+    amount DECIMAL(18, 5) NOT NULL,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
