@@ -47,7 +47,8 @@ type IDbTxBeginner interface {
 //}
 
 type Tx struct {
-	sqlx.Tx
+	*DB
+	Tx *sqlx.Tx
 }
 
 // handle DB errors based on error type and application need

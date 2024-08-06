@@ -1,4 +1,4 @@
-package simple_transaction_app
+package main
 
 import (
 	"context"
@@ -38,5 +38,6 @@ func main() {
 }
 
 func setupRoutes(app *internal.App, r *gin.Engine) {
-
+	app.AccountsRoutes.Routes(r.Group("/accounts"))
+	app.TransactionsRoutes.Routes(r.Group("/transactions"))
 }
